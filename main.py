@@ -4,13 +4,15 @@ And the english dictionary here: https://github.com/matthewreagan/WebstersEnglis
 '''
 
 import os
+import rcc
 import uuid
 import json
 import string
 import random
-import rcc
+import requests
 
 from os import urandom
+from typing import Optional
 from fastapi import FastAPI, HTTPException, Query
 
 app = FastAPI()
@@ -66,3 +68,27 @@ async def random_word(numb: int = Query(..., ge=1, le=10)):
 	return {"success":True,
 			"word_number":numb,
 			"words":random_words}
+
+url = "https://www.1secmail.com/api/v1/"
+
+@app.get('/v1/random/email')
+async def random_email(user: Optional[str]=None):
+	
+	def creating_email(username):
+		domains_list = requests.get(url,"action=getDomainList")
+		domain = random.choice(domains_list.json())
+		return {"email":username+"@"+domain}
+
+	if not user:
+		name = "".join(random.choice(string.ascii_lowercase)for _ in range(7))
+		return creating_email(name)
+
+	return creating_email(user)
+
+@app.get('/v1/random/email/inbox')
+async def reading_inbox(email: str):
+		username = email.split("@")[0]
+		domain = email.split("@")[1]
+		getting_inbox = requests.get(url, f"action=getMessages&login={username}&domain={domain}")
+		print(getting_inbox.json())
+		return {"info":getting_inbox.json()}
