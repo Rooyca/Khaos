@@ -1,0 +1,47 @@
+{
+   "visa": {
+     "niceType": "Visa",
+     "type": "visa",
+     "patterns": [
+       4
+     ],
+     "gaps": [4, 8, 12],
+     "lengths": [16, 18, 19],
+     "code": {
+       "name": "CVV",
+       "size": 3
+     }
+   },
+   "mastercard": {
+     "niceType": "Mastercard",
+     "type": "mastercard",
+     "patterns": [
+       [51, 55],
+       [2221, 2229],
+       [223, 229],
+       [23, 26],
+       [270, 271],
+       2720
+     ],
+     "gaps": [4, 8, 12],
+     "lengths": [16],
+     "code": {
+       "name": "CVC",
+       "size": 3
+     }
+   },
+   "american-express": {
+     "niceType": "American Express",
+     "type": "american-express",
+     "patterns": [
+       34,
+       37
+     ],
+     "gaps": [4, 10],
+     "lengths": [15],
+     "code": {
+       "name": "CID",
+       "size": 4
+     }
+  }
+}
