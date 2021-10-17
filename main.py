@@ -9,9 +9,11 @@ import uuid
 import json
 import string
 import random
+import secrets
 import requests
 
 from os import urandom
+from random import randint
 from typing import Optional
 from fastapi import FastAPI, HTTPException, Query
 
@@ -92,3 +94,72 @@ async def reading_inbox(email: str):
 		getting_inbox = requests.get(url, f"action=getMessages&login={username}&domain={domain}")
 		print(getting_inbox.json())
 		return {"info":getting_inbox.json()}
+
+
+@app.get('/v1/random/color')
+async def random_color(numb: int = 1, using: str = "hex"):
+	colores = {"code":{
+			   "hex":[],
+			   "rgb":[]
+			   }}
+
+	def hex_color():
+		new_color = colores['code']['hex'].append("#"+secrets.token_hex(3))
+
+	def rgb_color():
+		new_color = colores['code']['rgb'].append(str(randint(0,255))for _ in range(3))
+
+	for _ in range(numb):
+		hex_color()
+		rgb_color()
+
+	try:
+		if using == "all":
+			return {"colors":colores['code']} 
+		return {"colors":colores['code'][using]}
+
+	except:
+		raise HTTPException(status_code=400, 
+							detail="Make sure that you are using the correct value(hex, rgb or all)")
+
+@app.get('/v1/random/userdata')
+async def random_userdata():
+	states_data = os.path.join(os.path.dirname(__file__), 'static/states_data.json')
+	first_name = os.path.join(os.path.dirname(__file__), 'static/first-names.json')
+	last_name = os.path.join(os.path.dirname(__file__), 'static/names.json')
+	domain_name = os.path.join(os.path.dirname(__file__), 'static/domains_whitelist.txt')
+
+	with open(states_data) as states_d:
+		states = json.load(states_d)
+
+	with open(first_name) as first_n:
+		first = json.load(first_n)
+
+	with open(last_name) as last_n:
+		last = json.load(last_n)
+
+	with open(domain_name, 'r') as domain:
+		domain_n = domain.readlines()
+
+	user_location = random.choice(list(random.choice(states).items()))
+
+	data = {
+			  "firstName": "",
+			  "lastName": "",
+			  "emailAddress": "",
+			  "phoneNumber": "",
+			  "country": "USA",
+			  "state":"",
+			  "birthDate": "",
+			  "gender": ""
+			}
+
+	data['firstName'] = ''.join(random.choice(first))
+	data['lastName'] = ''.join(random.choice(last))
+	data['state'] = user_location[0]
+	data['phoneNumber'] = "("+str(random.choice(user_location[1]['area_codes']))+")"+str(randint(100,999))+"-"+str(randint(1000,9999))
+	data['birthDate'] = str(randint(1,12))+"/"+str(randint(1,31))+"/"+str(randint(1930,2001))
+	data['emailAddress'] = data['firstName']+data['birthDate'].split("/")[-1]+"@"+random.choice(domain_n).replace('\n','')
+	data['gender'] = ''.join(random.choice(["Male","Female"]))
+
+	return data
