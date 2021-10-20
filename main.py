@@ -14,7 +14,7 @@ import requests
 
 from os import urandom
 from random import randint
-from typing import Optional
+from typing import Optional, List
 from fastapi import FastAPI, HTTPException, Query
 
 app = FastAPI()
@@ -163,3 +163,56 @@ async def random_userdata():
 	data['gender'] = ''.join(random.choice(["Male","Female"]))
 
 	return data
+
+@app.get('/v1/random/choice')
+async def random_choice(option: List[str] = Query(...)):
+
+	return {"success":True,
+			"description":{
+			"optionsNumber":len(option),
+			"randomChoice":random.choice(option)
+			}
+		}
+
+@app.get('/v1/random/lordeck')
+async def random_lordeck():
+	from lor_deckcodes import LoRDeck
+
+	card_number = []
+	cards = []
+	factions = ["BC","BW","DE","FR","IO","NX","PZ","SH","SI","MT"]
+	reg_one = random.choice(factions)
+	reg_two = random.choice(factions)
+
+	while True:
+	    if sum(card_number) > 40:
+	        card_number.remove(random.choice(card_number))
+	    if sum(card_number) < 40:
+	        card_number.append(random.randint(1,3))
+	    if sum(card_number) == 40:
+	        break
+
+	with open("static/Factions/"+reg_one, "r") as ro:
+	    region_one = ro.readlines()
+
+	with open("static/Factions/"+reg_two, "r") as rt:
+	    region_two = rt.readlines()
+
+	for i in range(len(card_number)):
+	    def get_card():
+	        return random.sample(random.choice([region_one, region_two]),1)
+	    value = get_card()
+	    for card in cards:
+	        if value[0] == card[2:]:
+	            value = get_card()
+	    new_card = cards.append(str(card_number[i])+":"+value[0])
+
+	deck = LoRDeck(cards)
+
+	return {"success":True,
+			"description":{
+			"regions":reg_one+"/"+reg_two,
+			"cardNumber":len(card_number),
+			"deckCode":deck.encode()
+			}
+		}
