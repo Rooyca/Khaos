@@ -11,3 +11,4 @@ typing-extensions==3.10.0.2
 uvicorn==0.15.0
 gunicorn
 requests
+lor-deckcodes

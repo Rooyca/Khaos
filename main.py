@@ -15,6 +15,7 @@ import requests
 from os import urandom
 from random import randint
 from typing import Optional, List
+from lor_deckcodes import LoRDeck
 from fastapi import FastAPI, HTTPException, Query
 
 app = FastAPI()
@@ -176,8 +177,6 @@ async def random_choice(option: List[str] = Query(...)):
 
 @app.get('/v1/random/lordeck')
 async def random_lordeck():
-	from lor_deckcodes import LoRDeck
-
 	card_number = []
 	cards = []
 	factions = ["BC","BW","DE","FR","IO","NX","PZ","SH","SI","MT"]
