@@ -11,6 +11,7 @@ import string
 import random
 import secrets
 import requests
+import hashlib
 
 from os import urandom
 from random import randint
@@ -26,12 +27,30 @@ async def random_uuid():
 			"uuid":uuid.uuid4()}
 
 @app.get('/v1/random/password')
-async def random_password(numb: int=1, leng: int=12):
+async def random_password(numb: int=1, leng: int=12, include: str = "ULNS"):
 	passwords = []
+	chars = ""
+
+	if "U" in include:
+		chars = chars + string.ascii_uppercase
+
+	if "L" in include:
+		chars = chars + string.ascii_lowercase
+
+	if "N" in include:
+		chars = chars + string.digits
+
+	if "S" in include:
+		chars = chars + '`!”?$?%}^&*()_–+={[]:;@‘~#|<,>.?/'
 
 	def generate_password(length):
-		chars = string.ascii_letters + string.digits + '-_@#$%&!?'
-		return "".join(chars[c % len(chars)] for c in urandom(length))
+		try:
+			return "".join(chars[c % len(chars)] for c in urandom(length))
+		except:
+			raise HTTPException(status_code=400, detail={"success":False,
+										"description":f"{include} are not valid options",
+										"valid_options":["(U)ppercase", "(L)owercase", "(N)umbers","(S)imbols"]
+										})
 
 	if leng >= 12:
 		for _ in range(numb):
@@ -39,11 +58,20 @@ async def random_password(numb: int=1, leng: int=12):
 	else:
 		raise HTTPException(status_code=400, detail="The password has to be at least 12 characters long")
 
+	def password_security():
+		if len(chars) >=50 and leng >= 12:
+			return {"status":"Passwords are secure!",
+					"Advice":"Don't use a password more than one time and try to change it at leats one every 3 months"}
+		return {"status": "WARNING! I cannot guarantee the security of these passwords. Checkout here: https://howsecureismypassword.net/",
+				"Advice":"You should use at least 3 types of characters(ULNS) or a bigger length"}
+
 	return {"success":True,
-			"info":{
-			"password_length":leng,
-			"passwords_number":numb,
-			"passwords":passwords}}
+		"info":{
+		"passwords_security":password_security(),
+		"password_length":leng,
+		"passwords_number":numb,
+		"passwords":passwords}}
+
 
 @app.get('/v1/random/cc')
 async def random_cc(numb: int = Query(..., ge=1, le=10)):
@@ -213,5 +241,89 @@ async def random_lordeck():
 			"regions":reg_one+"/"+reg_two,
 			"cardNumber":len(card_number),
 			"deckCode":deck.encode()
+			}
+		}
+
+@app.get('/v1/random/phrase')
+async def random_phrase(using: Optional[str] = "AN", numb: Optional[int] = 1):
+
+	with open("static/en/en-adjectives.txt","r") as adj:
+		adjective = adj.readlines()
+
+	with open("static/en/en-nouns.txt", "r") as nou:
+		noun = nou.readlines()
+
+	with open("static/en/en-verbs-all.json", errors="ignore") as v:
+		verb = json.load(v)
+
+	phrase = {"AN":[],
+			  "NN":[],
+			  "VN":[]}
+
+	try:
+		if using == "AN":
+			for _ in range(numb):
+				phrase["AN"].append(random.choice(adjective).replace('\n',' ').capitalize()+random.choice(noun).replace('\n',''))
+		
+		if using == "NN":
+			for _ in range(numb):
+				phrase["NN"].append(random.choice(noun).replace('\n',' ').capitalize()+random.choice(noun).replace('\n',''))
+
+		if using == "VN":
+			for _ in range(numb):
+				phrase["VN"].append(random.choice(verb)[0].capitalize()+" "+random.choice(noun).replace('\n',''))
+
+		return {"success":True,
+				"description":{
+				"phrase":phrase[using]
+				}
+			}
+
+	except:
+		raise HTTPException(status_code=400, 
+			detail="Please select a valid option: AN (Adjective + Noun), NN (Noun + Noun) or VN (Verb + Noun)")
+
+@app.get('/v1/random/passphrase')
+async def random_passphrase(n_words: int = Query(7, ge=7), esp: bool = False):
+	sentence_ = []
+
+	if esp:
+		with open("static/bip/spanish.txt", "r") as esp:
+			palabras = esp.readlines()
+			for _ in range(n_words):
+				sentence_.append(random.choice(palabras))
+			return {"success":True,
+					"detalles":{
+					"numero_de_palabras":n_words,
+					"passphrase":' '.join(w for w in sentence_).replace('\n','')
+					}
+				}
+
+	with open("static/bip/eff_large_wordlist.txt") as mn:
+		mnemo = mn.readlines()
+
+	def new_word():
+		dn = []
+		for _ in range(5):
+			dn.append(random.randint(1,6))
+		return dn
+
+	for _ in range(n_words):
+		index_w = new_word()
+
+		if index_w in sentence_:
+			index_w = new_word()
+
+		indx_ = ''.join(str(e) for e in index_w)
+
+		for word in mnemo:
+			if int(word[:5]) == int(indx_):
+				sentence_.append(word[5:].replace('\t','').replace('\n',''))
+				break
+
+	return {"success":True,
+			"description":{
+			"pass_length":n_words,
+			"passphrase":' '.join(w for w in sentence_)
 			}
 		}
