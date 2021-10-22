@@ -245,7 +245,7 @@ async def random_lordeck():
 		}
 
 @app.get('/v1/random/phrase')
-async def random_phrase(using: Optional[str] = "AN", numb: Optional[int] = 1):
+async def random_phrase(ussing: Optional[str] = "AN", numb: Optional[int] = 1):
 
 	with open("static/en/en-adjectives.txt","r") as adj:
 		adjective = adj.readlines()
