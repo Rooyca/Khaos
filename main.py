@@ -261,21 +261,21 @@ async def random_phrase(ussing: Optional[str] = "AN", numb: Optional[int] = 1):
 			  "VN":[]}
 
 	try:
-		if using == "AN":
+		if ussing == "AN":
 			for _ in range(numb):
 				phrase["AN"].append(random.choice(adjective).replace('\n',' ').capitalize()+random.choice(noun).replace('\n',''))
 		
-		if using == "NN":
+		if ussing == "NN":
 			for _ in range(numb):
 				phrase["NN"].append(random.choice(noun).replace('\n',' ').capitalize()+random.choice(noun).replace('\n',''))
 
-		if using == "VN":
+		if ussing == "VN":
 			for _ in range(numb):
 				phrase["VN"].append(random.choice(verb)[0].capitalize()+" "+random.choice(noun).replace('\n',''))
 
 		return {"success":True,
 				"description":{
-				"phrase":phrase[using]
+				"phrase":phrase[ussing]
 				}
 			}
 
