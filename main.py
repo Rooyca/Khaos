@@ -32,10 +32,10 @@ import string
 import random
 import secrets
 import requests
-import hashlib
 
 from os import urandom
 from random import randint
+from random import choice as rc
 from typing import Optional, List
 from lor_deckcodes import LoRDeck
 from fastapi import FastAPI, HTTPException, Query
@@ -114,35 +114,12 @@ async def random_word(numb: int = Query(..., ge=1, le=10)):
 	random_words = []
 
 	for _ in range(numb):
-		random_letter = random.choice(dictionary)
-		new_word = random_words.append(random.choice(list(random_letter.items())))
+		random_letter = rc(dictionary)
+		new_word = random_words.append(rc(list(random_letter.items())))
 
 	return {"success":True,
 			"word_number":numb,
 			"words":random_words}
-
-url = "https://www.1secmail.com/api/v1/"
-
-@app.get('/v1/random/email')
-async def random_email(user: Optional[str]=None):
-	
-	def creating_email(username):
-		domains_list = requests.get(url,"action=getDomainList")
-		domain = random.choice(domains_list.json())
-		return {"email":username+"@"+domain}
-
-	if not user:
-		name = "".join(random.choice(string.ascii_lowercase)for _ in range(7))
-		return creating_email(name)
-
-	return creating_email(user)
-
-@app.get('/v1/random/email/inbox')
-async def reading_inbox(email: str):
-		username = email.split("@")[0]
-		domain = email.split("@")[1]
-		getting_inbox = requests.get(url, f"action=getMessages&login={username}&domain={domain}")
-		return {"info":getting_inbox.json()}
 
 @app.get('/v1/random/color')
 async def random_color(numb: int = 1, using: str = "hex"):
@@ -189,7 +166,7 @@ async def random_userdata():
 	with open(domain_name, 'r') as domain:
 		domain_n = domain.readlines()
 
-	user_location = random.choice(list(random.choice(states).items()))
+	user_location = rc(list(rc(states).items()))
 
 	data = {
 			  "firstName": "",
@@ -202,13 +179,13 @@ async def random_userdata():
 			  "gender": ""
 			}
 
-	data['firstName'] = ''.join(random.choice(first))
-	data['lastName'] = ''.join(random.choice(last))
+	data['firstName'] = ''.join(rc(first))
+	data['lastName'] = ''.join(rc(last))
 	data['state'] = user_location[0]
-	data['phoneNumber'] = "("+str(random.choice(user_location[1]['area_codes']))+")"+str(randint(100,999))+"-"+str(randint(1000,9999))
+	data['phoneNumber'] = "("+str(rc(user_location[1]['area_codes']))+")"+str(randint(100,999))+"-"+str(randint(1000,9999))
 	data['birthDate'] = str(randint(1,12))+"/"+str(randint(1,31))+"/"+str(randint(1930,2001))
-	data['emailAddress'] = data['firstName']+data['birthDate'].split("/")[-1]+"@"+random.choice(domain_n).replace('\n','')
-	data['gender'] = ''.join(random.choice(["Male","Female"]))
+	data['emailAddress'] = data['firstName']+data['birthDate'].split("/")[-1]+"@"+rc(domain_n).replace('\n','')
+	data['gender'] = ''.join(rc(["Male","Female"]))
 
 	return data
 
@@ -218,7 +195,7 @@ async def random_choice(option: List[str] = Query(...)):
 	return {"success":True,
 			"description":{
 			"optionsNumber":len(option),
-			"randomChoice":random.choice(option)
+			"randomChoice":rc(option)
 			}
 		}
 
@@ -227,12 +204,12 @@ async def random_lordeck():
 	card_number = []
 	cards = []
 	factions = ["BC","BW","DE","FR","IO","NX","PZ","SH","SI","MT"]
-	reg_one = random.choice(factions)
-	reg_two = random.choice(factions)
+	reg_one = rc(factions)
+	reg_two = rc(factions)
 
 	while True:
 	    if sum(card_number) > 40:
-	        card_number.remove(random.choice(card_number))
+	        card_number.remove(rc(card_number))
 	    if sum(card_number) < 40:
 	        card_number.append(random.randint(1,3))
 	    if sum(card_number) == 40:
@@ -246,7 +223,7 @@ async def random_lordeck():
 
 	for i in range(len(card_number)):
 	    def get_card():
-	        return random.sample(random.choice([region_one, region_two]),1)
+	        return random.sample(rc([region_one, region_two]),1)
 	    value = get_card()
 	    for card in cards:
 	        if value[0] == card[2:]:
@@ -282,15 +259,15 @@ async def random_phrase(ussing: Optional[str] = "AN", numb: Optional[int] = 1):
 	try:
 		if ussing == "AN":
 			for _ in range(numb):
-				phrase["AN"].append(random.choice(adjective).replace('\n',' ').capitalize()+random.choice(noun).replace('\n',''))
+				phrase["AN"].append(rc(adjective).replace('\n',' ').capitalize()+rc(noun).replace('\n',''))
 		
 		if ussing == "NN":
 			for _ in range(numb):
-				phrase["NN"].append(random.choice(noun).replace('\n',' ').capitalize()+random.choice(noun).replace('\n',''))
+				phrase["NN"].append(rc(noun).replace('\n',' ').capitalize()+rc(noun).replace('\n',''))
 
 		if ussing == "VN":
 			for _ in range(numb):
-				phrase["VN"].append(random.choice(verb)[0].capitalize()+" "+random.choice(noun).replace('\n',''))
+				phrase["VN"].append(rc(verb)[0].capitalize()+" "+rc(noun).replace('\n',''))
 
 		return {"success":True,
 				"description":{
@@ -310,7 +287,7 @@ async def random_passphrase(n_words: int = Query(7, ge=7), esp: bool = False):
 		with open("static/bip/spanish.txt", "r") as esp:
 			palabras = esp.readlines()
 			for _ in range(n_words):
-				sentence_.append(random.choice(palabras))
+				sentence_.append(rc(palabras))
 			return {"success":True,
 					"detalles":{
 					"numero_de_palabras":n_words,

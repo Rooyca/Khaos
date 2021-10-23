@@ -1,7 +1,7 @@
-from random import randint
 import re
 import json
 import os
+from random import randint
 
 card_types_path = os.path.join(os.path.dirname(__file__), 'static/card_types.json')
 
