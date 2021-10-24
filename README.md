@@ -1,4 +1,7 @@
 # Khaos
+
+### [English](README.md) - [Spanish](/README(Spanish).md)
+
 ![Khaos-logo](LogoChaosFinal.png)
 
 An API to generate randomness for (almost) everything
